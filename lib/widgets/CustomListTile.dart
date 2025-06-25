@@ -7,11 +7,11 @@ class CustomListTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const CustomListTile({
-    Key? key,
+    super.key,
     required this.iconData,
     required this.title,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +34,15 @@ class CustomListTile extends StatelessWidget {
           color: color,
         ),
       ),
+      
       trailing: Icon(
-        Icons.arrow_forward_ios,
+        Icons.keyboard_arrow_right,
         size: 16,
         color: color.withOpacity(0.6),
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        //borderRadius: BorderRadius.circular(12),
       ),
       onTap: onTap,
     );

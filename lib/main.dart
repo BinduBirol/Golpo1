@@ -5,6 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'user/age_input_page.dart';
 import 'home/story_page.dart';
 import 'user/settings_page.dart';
+//import 'package:flutter_localizations/flutter_localizations.dart';
+//import 'generated/l10n.dart'; // After running flutter gen-l10n
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +20,7 @@ void main() async {
 class MyApp extends StatefulWidget {
   final bool isDarkMode;
 
-  MyApp({required this.isDarkMode});
+  const MyApp({super.key, required this.isDarkMode});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -43,16 +46,16 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Interactive Story App',
       theme: ThemeData(
-        fontFamily: 'amita',
+        fontFamily: 'asap',
         brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.black38,
+        scaffoldBackgroundColor: Colors.grey,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.pinkAccent,
           foregroundColor: Colors.white,
         ),
       ),
       darkTheme: ThemeData(
-        fontFamily: 'amita',
+        fontFamily: 'asap',
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
         appBarTheme: const AppBarTheme(
@@ -74,7 +77,7 @@ class _MyAppState extends State<MyApp> {
 class InitialLoaderPage extends StatefulWidget {
   final Function(bool) onThemeChange;
 
-  InitialLoaderPage({required this.onThemeChange});
+  const InitialLoaderPage({super.key, required this.onThemeChange});
 
   @override
   _InitialLoaderPageState createState() => _InitialLoaderPageState();
@@ -82,7 +85,7 @@ class InitialLoaderPage extends StatefulWidget {
 
 class _InitialLoaderPageState extends State<InitialLoaderPage> {
   Future<void> _startApp() async {
-    print('Enter App button pressed');
+    print('Tap to continue');
 
     try {
       await BackgroundAudio.initAndPlayIfEnabled();
@@ -90,11 +93,8 @@ class _InitialLoaderPageState extends State<InitialLoaderPage> {
       print('Audio error: $e');
     }
 
-    print('Background audio initialized');
-
     final prefs = await SharedPreferences.getInstance();
     final hasAgeGroup = prefs.containsKey('age_group');
-    print('Has age group? $hasAgeGroup');
 
     if (hasAgeGroup) {
       Navigator.pushReplacement(
@@ -103,26 +103,36 @@ class _InitialLoaderPageState extends State<InitialLoaderPage> {
           builder: (_) => StoryPage(onThemeChange: widget.onThemeChange),
         ),
       );
-      print('Navigated to StoryPage');
     } else {
       Navigator.pushReplacementNamed(context, '/age');
-      print('Navigated to AgeInputPage');
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.play_arrow),
-          label: const Text("Enter App"),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            textStyle: const TextStyle(fontSize: 18),
+    return GestureDetector(
+      onTap: _startApp,
+      behavior: HitTestBehavior.opaque, // makes full area tappable
+      child: Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.touch_app, size: 80, color: Colors.pinkAccent),
+              const SizedBox(height: 20),
+              Text(
+                "Tap anywhere to continue",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+            ],
           ),
-          onPressed: _startApp,
         ),
       ),
     );
