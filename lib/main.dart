@@ -82,10 +82,19 @@ class InitialLoaderPage extends StatefulWidget {
 
 class _InitialLoaderPageState extends State<InitialLoaderPage> {
   Future<void> _startApp() async {
-    await BackgroundAudio.initAndPlayIfEnabled();
+    print('Enter App button pressed');
+
+    try {
+      await BackgroundAudio.initAndPlayIfEnabled();
+    } catch (e) {
+      print('Audio error: $e');
+    }
+
+    print('Background audio initialized');
 
     final prefs = await SharedPreferences.getInstance();
     final hasAgeGroup = prefs.containsKey('age_group');
+    print('Has age group? $hasAgeGroup');
 
     if (hasAgeGroup) {
       Navigator.pushReplacement(
@@ -94,10 +103,13 @@ class _InitialLoaderPageState extends State<InitialLoaderPage> {
           builder: (_) => StoryPage(onThemeChange: widget.onThemeChange),
         ),
       );
+      print('Navigated to StoryPage');
     } else {
       Navigator.pushReplacementNamed(context, '/age');
+      print('Navigated to AgeInputPage');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
