@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:golpo/widgets/my_app_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_localizations.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -21,37 +23,42 @@ class _ProfilePageState extends State<ProfilePage> {
     final group = prefs.getString('age_group');
 
     setState(() {
-      ageGroup = group ?? 'Not set';
+      ageGroup = group ?? AppLocalizations.of(context)!.unknown;
     });
   }
 
-  String getReadableGroup(String? group) {
-    switch (group) {
-      case 'under_18':
-        return 'Under 18';
-      case '18_30':
-        return '18 – 30';
-      case 'over_30':
-        return 'Over 30';
-      default:
-        return 'Unknown';
-    }
+  Future<void> signInWithGoogle() async {
+    // TODO: Replace with your actual sign-in logic
+    print("Signing in with Google...");
   }
 
   @override
   Widget build(BuildContext context) {
+    String getReadableGroup(String? group) {
+      switch (group) {
+        case 'under_18':
+          return AppLocalizations.of(context)!.under18;
+        case '18_30':
+          return AppLocalizations.of(context)!.ageGroup18to30;
+        case 'over_30':
+          return AppLocalizations.of(context)!.over30;
+        default:
+          return AppLocalizations.of(context)!.unknown;
+      }
+    }
+
     return Scaffold(
-      appBar: MyAppBar(title: 'Profile'),
+      appBar: MyAppBar(title: AppLocalizations.of(context)!.profile),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            width: double.infinity,
-            height: double.infinity,
-            padding: EdgeInsets.all(24),
-            child: Center(
+        child: Center(
+          child: Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -62,15 +69,31 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   SizedBox(height: 32),
-                  Text(
-                    'Your Age Group:',
-                    style: TextStyle(fontSize: 18),
-                  ),
+                  Text('Your Age Group:', style: TextStyle(fontSize: 18)),
                   SizedBox(height: 8),
                   Text(
                     getReadableGroup(ageGroup),
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  )
+                  ),
+                  SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    icon: FaIcon(FontAwesomeIcons.google, color: Colors.red),
+                    label: Text('Sign in with Google'),
+                    onPressed: signInWithGoogle,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      textStyle: TextStyle(fontSize: 16),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

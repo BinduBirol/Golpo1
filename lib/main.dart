@@ -1,23 +1,61 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:golpo/utils/background_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'utils/initial_loader_page.dart';
 import 'user/age_input_page.dart';
 import 'home/story_page.dart';
 import 'user/settings_page.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final isDark = prefs.getBool('dark_mode') ?? false;
+  print('[MAIN] Widgets initialized');
 
-  runApp(MyApp(isDarkMode: isDark));
+  bool isDark = false;
+  String langCode = 'bn';
+
+  if (!kIsWeb) {
+    print('[MAIN] Loading SharedPreferences...');
+    final prefs = await SharedPreferences.getInstance();
+    isDark = prefs.getBool('dark_mode') ?? false;
+    langCode = prefs.getString('language') ?? 'bn';
+    print('[MAIN] Loaded prefs: dark=$isDark, lang=$langCode');
+  }
+
+  print('[MAIN] Initializing Firebase...');
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+        apiKey: "AIzaSyDhTjTdTHa5xyZPpM_khIHxxTBTbBK6RNQ",
+        authDomain: "golpo-4e336.firebaseapp.com",
+        projectId: "golpo-4e336",
+        storageBucket: "golpo-4e336.appspot.com",
+        messagingSenderId: "937469130987",
+        appId: "1:937469130987:web:a7a81fb2f6c341951d26ae",
+        measurementId: "G-S370BRK2G1",
+      ),
+    );
+  } else {
+    await Firebase.initializeApp();
+  }
+  print('[MAIN] Firebase initialized');
+
+  runApp(MyApp(isDarkMode: isDark, initialLangCode: langCode));
 }
+
 
 class MyApp extends StatefulWidget {
   final bool isDarkMode;
+  final String initialLangCode;
 
-  MyApp({required this.isDarkMode});
+  const MyApp({
+    super.key,
+    required this.isDarkMode,
+    required this.initialLangCode,
+  });
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -25,10 +63,18 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late bool isDarkMode;
+  late Locale _locale;
 
   @override
   void initState() {
     super.initState();
+
+    // Handle language code like 'en' or 'en_US'
+    final parts = widget.initialLangCode.split('_');
+    _locale = parts.length == 1
+        ? Locale(parts[0])
+        : Locale(parts[0], parts[1]);
+
     isDarkMode = widget.isDarkMode;
   }
 
@@ -38,21 +84,34 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void _updateLocale(String langCode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', langCode);
+
+    final parts = langCode.split('_');
+    setState(() {
+      _locale = parts.length == 1
+          ? Locale(parts[0])
+          : Locale(parts[0], parts[1]);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Interactive Story App',
       theme: ThemeData(
-        fontFamily: 'amita',
+        fontFamily: 'asap',
         brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.black38,
+        scaffoldBackgroundColor: Colors.grey,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.pinkAccent,
           foregroundColor: Colors.white,
         ),
       ),
       darkTheme: ThemeData(
-        fontFamily: 'amita',
+        fontFamily: 'asap',
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
         appBarTheme: const AppBarTheme(
@@ -61,70 +120,32 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: InitialLoaderPage(onThemeChange: _updateTheme),
+      locale: _locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('bn'),
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: InitialLoaderPage(
+        onThemeChange: _updateTheme,
+        onLocaleChange: _updateLocale,
+      ),
       routes: {
         '/age': (context) => AgeInputPage(),
-        '/story': (context) => StoryPage(onThemeChange: _updateTheme),
-        '/settings': (context) => SettingsPage(onThemeChange: _updateTheme),
+        '/story': (context) => StoryPage(
+          onThemeChange: _updateTheme,
+          onLocaleChange: _updateLocale,
+        ),
+        '/settings': (context) => SettingsPage(
+          onThemeChange: _updateTheme,
+          onLocaleChange: _updateLocale,
+        ),
       },
-    );
-  }
-}
-
-class InitialLoaderPage extends StatefulWidget {
-  final Function(bool) onThemeChange;
-
-  InitialLoaderPage({required this.onThemeChange});
-
-  @override
-  _InitialLoaderPageState createState() => _InitialLoaderPageState();
-}
-
-class _InitialLoaderPageState extends State<InitialLoaderPage> {
-  Future<void> _startApp() async {
-    print('Enter App button pressed');
-
-    try {
-      await BackgroundAudio.initAndPlayIfEnabled();
-    } catch (e) {
-      print('Audio error: $e');
-    }
-
-    print('Background audio initialized');
-
-    final prefs = await SharedPreferences.getInstance();
-    final hasAgeGroup = prefs.containsKey('age_group');
-    print('Has age group? $hasAgeGroup');
-
-    if (hasAgeGroup) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => StoryPage(onThemeChange: widget.onThemeChange),
-        ),
-      );
-      print('Navigated to StoryPage');
-    } else {
-      Navigator.pushReplacementNamed(context, '/age');
-      print('Navigated to AgeInputPage');
-    }
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.play_arrow),
-          label: const Text("Enter App"),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            textStyle: const TextStyle(fontSize: 18),
-          ),
-          onPressed: _startApp,
-        ),
-      ),
     );
   }
 }

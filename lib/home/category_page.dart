@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:golpo/widgets/my_app_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/app_localizations.dart';
+
 class CategoryPage extends StatefulWidget {
   @override
   _CategoryPageState createState() => _CategoryPageState();
@@ -41,7 +43,7 @@ class _CategoryPageState extends State<CategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar(title: 'Library'),
+      appBar: MyAppBar(title: AppLocalizations.of(context)!.library),
       body: Row(
         children: [
           Text(
