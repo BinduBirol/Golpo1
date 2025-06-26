@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/app_localizations.dart';
 import '../utils/background_audio.dart';
 import '../widgets/my_app_bar.dart';
 
 class SettingsPage extends StatefulWidget {
   final Function(bool isDarkMode) onThemeChange;
+  final Function(String) onLocaleChange;
 
-  SettingsPage({required this.onThemeChange});
+  SettingsPage({required this.onThemeChange, required this.onLocaleChange});
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -21,16 +23,9 @@ class _SettingsPageState extends State<SettingsPage> {
   String ageGroup = '18_30';
   String language = 'en';
 
-  final ageOptions = {
-    'under_18': 'Under 18',
-    '18_30': '18 – 30',
-    'over_30': 'Over 30',
-  };
 
-  final languageOptions = {
-    'en': 'English',
-    'bn': 'বাংলা',
-  };
+
+  final languageOptions = {'en': 'English', 'bn': 'বাংলা'};
 
   @override
   void initState() {
@@ -64,16 +59,23 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    final ageOptions = {
+      'under_18': AppLocalizations.of(context)!.under18,
+      '18_30': AppLocalizations.of(context)!.ageGroup18to30,
+      'over_30': AppLocalizations.of(context)!.over30,
+    };
+
     return Scaffold(
-      appBar: MyAppBar(title: 'Settings'),
+      appBar: MyAppBar(title: AppLocalizations.of(context)!.settings),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
           _buildCard(
-            title: 'Theme',
+            title: AppLocalizations.of(context)!.theme,
             children: [
               SwitchListTile(
-                title: Text('Dark Mode'),
+                title: Text(AppLocalizations.of(context)!.darkMode),
                 value: darkMode,
                 onChanged: (val) {
                   setState(() => darkMode = val);
@@ -85,10 +87,10 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           ),
           _buildCard(
-            title: 'Audio',
+            title:  AppLocalizations.of(context)!.audio,
             children: [
               SwitchListTile(
-                title: Text('Sound Effects (SFX)'),
+                title: Text(AppLocalizations.of(context)!.soundEffects),
                 value: sfx,
                 onChanged: (val) {
                   setState(() => sfx = val);
@@ -97,7 +99,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 secondary: Icon(Icons.surround_sound),
               ),
               ListTile(
-                leading: Icon(musicVolume == 0 ? Icons.volume_off : Icons.volume_up),
+                leading: Icon(
+                  musicVolume == 0 ? Icons.volume_off : Icons.volume_up,
+                ),
                 title: Slider(
                   value: musicVolume,
                   onChanged: (val) {
@@ -113,14 +117,16 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
           ),
+
+          // ... your other cards ...
           _buildCard(
-            title: 'Preferences',
+            title: AppLocalizations.of(context)!.preferences,
             children: [
               Row(
                 children: [
                   Expanded(
                     child: _buildDropdownField(
-                      label: 'Age Group',
+                      label: AppLocalizations.of(context)!.ageGroup,
                       value: ageGroup,
                       items: ageOptions,
                       onChanged: (val) {
@@ -134,13 +140,16 @@ class _SettingsPageState extends State<SettingsPage> {
                   SizedBox(width: 16),
                   Expanded(
                     child: _buildDropdownField(
-                      label: 'Language',
+                      label: AppLocalizations.of(context)!.language,
                       value: language,
                       items: languageOptions,
                       onChanged: (val) {
                         if (val != null) {
                           setState(() => language = val);
                           _updateSetting('language', val);
+                          widget.onLocaleChange(
+                            val,
+                          ); // notify app of locale change
                         }
                       },
                     ),
@@ -164,8 +173,10 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             ...children,
           ],
         ),
@@ -182,16 +193,20 @@ class _SettingsPageState extends State<SettingsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value,
           items: items.entries
-              .map((entry) => DropdownMenuItem(
-            value: entry.key,
-            child: Text(entry.value),
-          ))
+              .map(
+                (entry) => DropdownMenuItem(
+                  value: entry.key,
+                  child: Text(entry.value),
+                ),
+              )
               .toList(),
           onChanged: onChanged,
           decoration: InputDecoration(
